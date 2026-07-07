@@ -57,6 +57,12 @@ tailwind.config = {
   .gradient-bg { background: linear-gradient(135deg, #7e22ce 0%, #d946ef 100%); }
   .preview-checker { background-image: url("data:image/svg+xml,%3Csvg width='20' height='20' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='10' height='10' fill='%23eee'/%3E%3Crect x='10' y='10' width='10' height='10' fill='%23eee'/%3E%3C/svg%3E"); }
 </style>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#7e22ce">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="批量图编">
+<link rel="apple-touch-icon" href="/favicon.svg">
 </head>
 <body class="bg-gray-50 min-h-screen">
 
@@ -618,6 +624,11 @@ function formatSize(bytes) {
   if (bytes < 1024) return bytes + ' B';
   if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
   return (bytes / 1048576).toFixed(1) + ' MB';
+}
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(() => {});
 }
 </script>
 </body>

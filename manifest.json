@@ -1,0 +1,17 @@
+{
+  "name": "批量图片编辑",
+  "short_name": "批量图编",
+  "description": "在线批量图片处理工具，批量压缩、加水印、改格式、调尺寸",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#7e22ce",
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
