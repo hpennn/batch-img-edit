@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>批量图片编辑 - 在线批量调整尺寸、压缩、加水印、转格式</title>
+<meta name="description" content="免费在线批量图片处理工具：批量压缩图片、批量加水印、图片批量转换格式（JPG/PNG/WebP）、批量调整尺寸。纯浏览器本地处理，隐私安全，无需上传服务器。">
+<meta name="keywords" content="批量图片处理,批量压缩图片,批量加水印,图片批量转换,批量调整尺寸,在线图片编辑器">
+<link rel="canonical" href="https://batch-img-edit.pages.dev/">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://batch-img-edit.pages.dev/">
+<meta property="og:title" content="批量图片编辑 - 在线批量调整尺寸、压缩、加水印、转格式">
+<meta property="og:description" content="免费在线批量图片处理工具：批量压缩图片、批量加水印、图片批量转换格式、批量调整尺寸。纯浏览器本地处理，隐私安全。">
+<meta property="og:image" content="https://batch-img-edit.pages.dev/favicon.svg">
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="批量图片编辑 - 在线批量调整尺寸、压缩、加水印、转格式">
+<meta name="twitter:description" content="免费在线批量图片处理工具：批量压缩图片、批量加水印、图片批量转换格式、批量调整尺寸。纯浏览器本地处理，隐私安全。">
+<meta name="twitter:image" content="https://batch-img-edit.pages.dev/favicon.svg">
+<!-- JSON-LD -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "批量图片编辑",
+  "url": "https://batch-img-edit.pages.dev/",
+  "description": "免费在线批量图片处理工具：批量压缩图片、批量加水印、图片批量转换格式、批量调整尺寸。纯浏览器本地处理，隐私安全。",
+  "applicationCategory": "MultimediaApplication",
+  "operatingSystem": "All",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "CNY" },
+  "featureList": ["批量调整尺寸","批量格式转换","批量压缩","批量加水印","批量下载ZIP"]
+}
+</script>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com"></script>
+<!-- JSZip -->
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        primary: { 50:'#faf5ff',100:'#f3e8ff',200:'#e9d5ff',300:'#d8b4fe',400:'#c084fc',500:'#a855f7',600:'#9333ea',700:'#7e22ce',800:'#6b21a8',900:'#581c87' }
+      }
+    }
+  }
+}
+</script>
+<style>
+  .drop-zone.dragover { border-color: #a855f7; background: rgba(168,85,247,0.08); }
+  .thumb-item.active { ring: 2px solid #a855f7; }
+  .tab-btn.active { color: #9333ea; border-bottom: 2px solid #9333ea; }
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-thumb { background: #d8b4fe; border-radius: 3px; }
+  .gradient-bg { background: linear-gradient(135deg, #7e22ce 0%, #d946ef 100%); }
+  .preview-checker { background-image: url("data:image/svg+xml,%3Csvg width='20' height='20' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='10' height='10' fill='%23eee'/%3E%3Crect x='10' y='10' width='10' height='10' fill='%23eee'/%3E%3C/svg%3E"); }
+</style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+<!-- Header -->
+<header class="gradient-bg text-white shadow-lg">
+  <div class="max-w-7xl mx-auto px-4 py-5 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <img src="favicon.svg" alt="批量图片编辑" class="w-9 h-9 rounded-lg shadow">
+      <div>
+        <h1 class="text-xl font-bold">批量图片编辑</h1>
+        <p class="text-purple-200 text-xs">在线批量调整尺寸、压缩、加水印、转格式</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-2">
+      <span class="hidden sm:inline text-sm text-purple-200">🔒 纯本地处理 · 隐私安全</span>
+    </div>
+  </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-4 py-6">
+
+  <!-- Upload Zone -->
+  <div id="dropZone" class="drop-zone border-2 border-dashed border-purple-300 rounded-2xl p-10 text-center cursor-pointer hover:border-purple-500 hover:bg-purple-50/50 transition-all bg-white mb-6" onclick="document.getElementById('fileInput').click()">
+    <input type="file" id="fileInput" class="hidden" accept="image/*" multiple>
+    <svg class="mx-auto w-16 h-16 text-purple-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+    <p class="text-lg font-semibold text-gray-700">拖拽图片到此处 或 <span class="text-purple-600">点击选择</span></p>
+    <p class="text-sm text-gray-400 mt-1">支持 JPG、PNG、WebP、GIF、BMP · 可多选</p>
+  </div>
+
+  <!-- File count bar -->
+  <div id="fileBar" class="hidden flex items-center justify-between bg-white rounded-xl px-5 py-3 mb-6 shadow-sm border border-gray-100">
+    <span class="text-sm text-gray-600">已加载 <span id="fileCount" class="font-bold text-purple-600">0</span> 张图片</span>
+    <button onclick="clearAll()" class="text-sm text-red-500 hover:text-red-700 font-medium">清空全部</button>
+  </div>
+
+  <!-- Main workspace -->
+  <div id="workspace" class="hidden">
+    <div class="flex flex-col lg:flex-row gap-6">
+
+      <!-- Left: thumbnails -->
+      <div class="w-full lg:w-72 shrink-0">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+          <h2 class="text-sm font-bold text-gray-500 uppercase tracking-wide mb-3">图片列表</h2>
+          <div id="thumbList" class="grid grid-cols-3 lg:grid-cols-2 gap-2 max-h-[420px] overflow-y-auto pr-1"></div>
+        </div>
+      </div>
+
+      <!-- Right: preview + tabs -->
+      <div class="flex-1 min-w-0">
+        <!-- Preview -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-6">
+          <div class="flex items-center justify-between mb-3">
+            <h2 class="text-sm font-bold text-gray-500 uppercase tracking-wide">预览</h2>
+            <div class="flex items-center gap-2 text-xs">
+              <button onclick="setPreviewMode('original')" id="btnOriginal" class="px-3 py-1 rounded-full bg-gray-100 text-gray-600 hover:bg-purple-100 hover:text-purple-700 font-medium transition">原图</button>
+              <button onclick="setPreviewMode('processed')" id="btnProcessed" class="px-3 py-1 rounded-full bg-purple-600 text-white font-medium transition">处理后</button>
+            </div>
+          </div>
+          <div class="preview-checker rounded-xl overflow-hidden flex items-center justify-center min-h-[240px] max-h-[400px]">
+            <img id="previewImg" class="max-w-full max-h-[400px] object-contain rounded" alt="预览">
+          </div>
+          <div id="previewInfo" class="mt-3 text-xs text-gray-400 text-center"></div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          <div class="flex border-b border-gray-100 overflow-x-auto">
+            <button onclick="switchTab('resize')" class="tab-btn active flex-1 min-w-[100px] px-4 py-3 text-sm font-semibold text-gray-500 hover:text-purple-600 transition whitespace-nowrap" data-tab="resize">📐 调整尺寸</button>
+            <button onclick="switchTab('format')" class="tab-btn flex-1 min-w-[100px] px-4 py-3 text-sm font-semibold text-gray-500 hover:text-purple-600 transition whitespace-nowrap" data-tab="format">🔄 格式转换</button>
+            <button onclick="switchTab('compress')" class="tab-btn flex-1 min-w-[100px] px-4 py-3 text-sm font-semibold text-gray-500 hover:text-purple-600 transition whitespace-nowrap" data-tab="compress">📦 压缩</button>
+            <button onclick="switchTab('watermark')" class="tab-btn flex-1 min-w-[100px] px-4 py-3 text-sm font-semibold text-gray-500 hover:text-purple-600 transition whitespace-nowrap" data-tab="watermark">💧 水印</button>
+          </div>
+
+          <!-- Resize Panel -->
+          <div id="panel-resize" class="tab-panel p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-600 mb-1">模式</label>
+                <select id="resizeMode" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-400 focus:border-transparent outline-none" onchange="toggleResizeInputs()">
+                  <option value="pixel">按像素</option>
+                  <option value="percent">按百分比</option>
+                </select>
+              </div>
+              <div class="flex items-end">
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" id="keepRatio" checked class="w-4 h-4 accent-purple-600 rounded">
+                  <span class="text-sm text-gray-600">保持宽高比</span>
+                </label>
+              </div>
+            </div>
+            <div id="pixelInputs" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-600 mb-1">宽度 (px)</label>
+                <input type="number" id="resizeW" placeholder="宽" min="1" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-400 focus:border-transparent outline-none">
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-600 mb-1">高度 (px)</label>
+                <input type="number" id="resizeH" placeholder="高" min="1" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-400 focus:border-transparent outline-none">
+              </div>
+            </div>
+            <div id="percentInputs" class="hidden mb-4">
+              <label class="block text-sm font-medium text-gray-600 mb-1">缩放比例 (%)</label>
+              <input type="number" id="resizePercent" value="50" min="1" max="500" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-400 focus:border-transparent outline-none">
+            </div>
+            <button onclick="applyResize()" class="gradient-bg text-white px-6 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 transition shadow-md">调整尺寸</button>
+          </div>
+
+          <!-- Format Panel -->
+          <div id="panel-format" class="tab-panel p-6 hidden">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-600 mb-1">目标格式</label>
+                <select id="targetFormat" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-400 focus:border-transparent outline-none">
+                  <option value="image/jpeg">JPEG (.jpg)</option>
+                  <option value="image/png">PNG (.png)</option>
+                  <option value="image/webp" selected>WebP (.webp)</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-600 mb-1">质量 (JPEG/WebP)</label>
+                <input type="range" id="formatQuality" min="10" max="100" value="90" class="w-full accent-purple-600 mt-2" oninput="document.getElementById('formatQualityVal').textContent=this.value+'%'">
+                <span id="formatQualityVal" class="text-xs text-gray-400">90%</span>
+              </div>
+            </div>
+            <button onclick="applyFormat()" class="gradient-bg text-white px-6 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 transition shadow-md">转换格式</button>
+          </div>
+
+          <!-- Compress Panel -->
+          <div id="panel-compress" class="tab-panel p-6 hidden">
+            <div class="mb-4">
+              <label class="block text-sm font-medium text-gray-600 mb-1">压缩质量</label>
+              <input type="range" id="compressQuality" min="10" max="100" value="70" class="w-full accent-purple-600" oninput="document.getElementById('compressQualityVal').textContent=this.value+'%'">
+              <div class="flex justify-between text-xs text-gray-400 mt-1">
+                <span>文件更小</span>
+                <span id="compressQualityVal">70%</span>
+                <span>质量更高</span>
+              </div>
+            </div>
+            <p class="text-xs text-gray-400 mb-4">💡 压缩将输出为 JPEG 格式以获得最佳压缩率。如需保留透明度，请使用格式转换功能转为 WebP。</p>
+            <button onclick="applyCompress()" class="gradient-bg text-white px-6 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 transition shadow-md">压缩图片</button>
+          </div>
+
+          <!-- Watermark Panel -->
+          <div id="panel-watermark" class="tab-panel p-6 hidden">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-600 mb-1">水印文字</label>
+                <input type="text" id="wmText" value="© My Watermark" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-400 focus:border-transparent outline-none">
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-600 mb-1">字体大小 (px)</label>
+                <input type="number" id="wmSize" value="24" min="8" max="200" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-400 focus:border-transparent outline-none">
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-600 mb-1">颜色</label>
+                <div class="flex items-center gap-2">
+                  <input type="color" id="wmColor" value="#ffffff" class="w-10 h-10 rounded cursor-pointer border-0">
+                  <input type="range" id="wmOpacity" min="0" max="100" value="70" class="flex-1 accent-purple-600" oninput="document.getElementById('wmOpacityVal').textContent=this.value+'%'">
+                  <span id="wmOpacityVal" class="text-xs text-gray-400 w-10">70%</span>
+                </div>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-600 mb-1">位置</label>
+                <select id="wmPosition" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-400 focus:border-transparent outline-none">
+                  <option value="top-left">左上角</option>
+                  <option value="top-center">顶部居中</option>
+                  <option value="top-right">右上角</option>
+                  <option value="center-left">左侧居中</option>
+                  <option value="center" selected>居中</option>
+                  <option value="center-right">右侧居中</option>
+                  <option value="bottom-left">左下角</option>
+                  <option value="bottom-center">底部居中</option>
+                  <option value="bottom-right">右下角</option>
+                </select>
+              </div>
+            </div>
+            <button onclick="applyWatermark()" class="gradient-bg text-white px-6 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 transition shadow-md">添加水印</button>
+          </div>
+        </div>
+
+        <!-- Download bar -->
+        <div id="downloadBar" class="mt-6 flex flex-col sm:flex-row items-center justify-between bg-white rounded-2xl shadow-sm border border-gray-100 p-5 gap-3">
+          <div class="text-sm text-gray-600">
+            <span class="font-bold text-purple-600" id="processedCount">0</span> 张图片已处理
+            <span id="sizeInfo" class="text-gray-400 ml-2"></span>
+          </div>
+          <div class="flex gap-3">
+            <button onclick="downloadAll()" class="gradient-bg text-white px-6 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 transition shadow-md flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+              打包下载 ZIP
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Processing overlay -->
+  <div id="processingOverlay" class="hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center">
+    <div class="bg-white rounded-2xl p-8 shadow-2xl text-center max-w-xs w-full mx-4">
+      <div class="w-12 h-12 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin mx-auto mb-4"></div>
+      <p id="processingText" class="text-gray-700 font-semibold">处理中...</p>
+      <p id="processingProgress" class="text-sm text-gray-400 mt-1"></p>
+    </div>
+  </div>
+
+  <!-- Features section -->
+  <section class="mt-16 mb-10">
+    <h2 class="text-2xl font-bold text-center text-gray-800 mb-8">为什么选择批量图片编辑？</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 text-center">
+        <div class="text-3xl mb-3">🔒</div>
+        <h3 class="font-bold text-gray-800 mb-2">隐私安全</h3>
+        <p class="text-sm text-gray-500">所有图片处理均在浏览器本地完成，不会上传到任何服务器，确保您的图片隐私安全。</p>
+      </div>
+      <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 text-center">
+        <div class="text-3xl mb-3">⚡</div>
+        <h3 class="font-bold text-gray-800 mb-2">快速高效</h3>
+        <p class="text-sm text-gray-500">一次上传数百张图片，批量调整尺寸、批量压缩图片、批量加水印，一键完成所有操作。</p>
+      </div>
+      <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 text-center">
+        <div class="text-3xl mb-3">🆓</div>
+        <h3 class="font-bold text-gray-800 mb-2">免费无限制</h3>
+        <p class="text-sm text-gray-500">完全免费使用，无需注册登录，没有图片数量限制，支持图片批量转换格式为 JPG/PNG/WebP。</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- Footer -->
+<footer class="bg-white border-t border-gray-100 py-6 text-center text-sm text-gray-400">
+  <p>批量图片编辑 &copy; 2025 · 纯前端工具 · 数据不离开您的浏览器</p>
+</footer>
+
+<script>
+// ==================== State ====================
+let images = []; // {id, name, file, originalUrl, originalW, originalH, processedCanvas, processedBlob, processedName}
+let currentIdx = -1;
+let previewMode = 'processed';
+let idCounter = 0;
+
+// ==================== Upload ====================
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('dragover'); handleFiles(e.dataTransfer.files); });
+fileInput.addEventListener('change', e => handleFiles(e.target.files));
+
+function handleFiles(files) {
+  const imageFiles = [...files].filter(f => f.type.startsWith('image/'));
+  if (!imageFiles.length) return;
+  let loaded = 0;
+  imageFiles.forEach(file => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      const item = {
+        id: ++idCounter,
+        name: file.name,
+        file,
+        originalUrl: url,
+        originalW: img.naturalWidth,
+        originalH: img.naturalHeight,
+        processedCanvas: null,
+        processedBlob: null,
+        processedName: file.name
+      };
+      images.push(item);
+      loaded++;
+      if (loaded === imageFiles.length) {
+        refreshUI();
+        if (currentIdx < 0) selectImage(0);
+      }
+    };
+    img.src = url;
+  });
+}
+
+// ==================== UI ====================
+function refreshUI() {
+  const ws = document.getElementById('workspace');
+  const bar = document.getElementById('fileBar');
+  ws.classList.toggle('hidden', images.length === 0);
+  bar.classList.toggle('hidden', images.length === 0);
+  document.getElementById('fileCount').textContent = images.length;
+  renderThumbs();
+  updateProcessedCount();
+}
+
+function renderThumbs() {
+  const list = document.getElementById('thumbList');
+  list.innerHTML = '';
+  images.forEach((item, idx) => {
+    const div = document.createElement('div');
+    div.className = `relative rounded-lg overflow-hidden cursor-pointer border-2 transition ${idx === currentIdx ? 'border-purple-500 shadow-md' : 'border-transparent hover:border-purple-200'}`;
+    div.onclick = () => selectImage(idx);
+    div.innerHTML = `
+      <div class="aspect-square bg-gray-100 flex items-center justify-center overflow-hidden">
+        <img src="${item.processedCanvas ? item.processedCanvas.toDataURL() : item.originalUrl}" class="max-w-full max-h-full object-contain" alt="${item.name}">
+      </div>
+      <div class="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-[10px] px-1 py-0.5 truncate">${item.name}</div>
+      ${item.processedCanvas ? '<div class="absolute top-1 right-1 bg-purple-600 text-white text-[9px] px-1 rounded">✓</div>' : ''}
+    `;
+    list.appendChild(div);
+  });
+}
+
+function selectImage(idx) {
+  currentIdx = idx;
+  renderThumbs();
+  updatePreview();
+}
+
+function updatePreview() {
+  if (currentIdx < 0 || currentIdx >= images.length) return;
+  const item = images[currentIdx];
+  const img = document.getElementById('previewImg');
+  const info = document.getElementById('previewInfo');
+  if (previewMode === 'original') {
+    img.src = item.originalUrl;
+    info.textContent = `原图 · ${item.originalW} × ${item.originalH} · ${formatSize(item.file.size)}`;
+  } else {
+    if (item.processedCanvas) {
+      img.src = item.processedCanvas.toDataURL();
+      const size = item.processedBlob ? formatSize(item.processedBlob.size) : '-';
+      info.textContent = `处理后 · ${item.processedCanvas.width} × ${item.processedCanvas.height} · ${size}`;
+    } else {
+      img.src = item.originalUrl;
+      info.textContent = `尚未处理 · 原图 ${item.originalW} × ${item.originalH}`;
+    }
+  }
+}
+
+function setPreviewMode(mode) {
+  previewMode = mode;
+  document.getElementById('btnOriginal').className = `px-3 py-1 rounded-full text-sm font-medium transition ${mode === 'original' ? 'bg-gray-100 text-gray-800' : 'bg-purple-600 text-white'}`;
+  document.getElementById('btnProcessed').className = `px-3 py-1 rounded-full text-sm font-medium transition ${mode === 'processed' ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-600'}`;
+  updatePreview();
+}
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
+  document.getElementById('panel-' + tab).classList.remove('hidden');
+}
+
+function toggleResizeInputs() {
+  const mode = document.getElementById('resizeMode').value;
+  document.getElementById('pixelInputs').classList.toggle('hidden', mode !== 'pixel');
+  document.getElementById('percentInputs').classList.toggle('hidden', mode !== 'percent');
+}
+
+function clearAll() {
+  images.forEach(i => URL.revokeObjectURL(i.originalUrl));
+  images = [];
+  currentIdx = -1;
+  refreshUI();
+  document.getElementById('previewImg').src = '';
+  document.getElementById('previewInfo').textContent = '';
+}
+
+function updateProcessedCount() {
+  const cnt = images.filter(i => i.processedCanvas).length;
+  document.getElementById('processedCount').textContent = cnt;
+  const totalSize = images.reduce((s, i) => s + (i.processedBlob ? i.processedBlob.size : 0), 0);
+  document.getElementById('sizeInfo').textContent = totalSize ? `· 总计 ${formatSize(totalSize)}` : '';
+}
+
+// ==================== Processing helpers ====================
+function showProcessing(text, progress) {
+  document.getElementById('processingOverlay').classList.remove('hidden');
+  if (text) document.getElementById('processingText').textContent = text;
+  if (progress !== undefined) document.getElementById('processingProgress').textContent = progress;
+}
+function hideProcessing() { document.getElementById('processingOverlay').classList.add('hidden'); }
+
+function loadImage(item) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.src = item.originalUrl;
+  });
+}
+
+function canvasToBlob(canvas, type, quality) {
+  return new Promise(resolve => canvas.toBlob(resolve, type, quality));
+}
+
+function getExtension(mime) {
+  const map = { 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp' };
+  return map[mime] || '.png';
+}
+
+// ==================== Apply operations ====================
+async function applyResize() {
+  if (!images.length) return;
+  showProcessing('正在调整尺寸...');
+  const mode = document.getElementById('resizeMode').value;
+  const keepRatio = document.getElementById('keepRatio').checked;
+  for (let i = 0; i < images.length; i++) {
+    document.getElementById('processingProgress').textContent = `${i + 1} / ${images.length}`;
+    const item = images[i];
+    const img = await loadImage(item);
+    const canvas = document.createElement('canvas');
+    let w, h;
+    if (mode === 'pixel') {
+      w = parseInt(document.getElementById('resizeW').value) || img.naturalWidth;
+      h = parseInt(document.getElementById('resizeH').value) || img.naturalHeight;
+      if (keepRatio) {
+        const ratio = img.naturalWidth / img.naturalHeight;
+        if (document.getElementById('resizeW').value && !document.getElementById('resizeH').value) {
+          h = Math.round(w / ratio);
+        } else if (document.getElementById('resizeH').value && !document.getElementById('resizeW').value) {
+          w = Math.round(h * ratio);
+        } else {
+          h = Math.round(w / ratio);
+        }
+      }
+    } else {
+      const pct = (parseInt(document.getElementById('resizePercent').value) || 100) / 100;
+      w = Math.round(img.naturalWidth * pct);
+      h = Math.round(img.naturalHeight * pct);
+    }
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, w, h);
+    const ext = getExtension(item.file.type);
+    const mime = item.file.type || 'image/png';
+    item.processedCanvas = canvas;
+    item.processedBlob = await canvasToBlob(canvas, mime, 0.92);
+    item.processedName = item.name.replace(/\.[^.]+$/, '') + `_resized${ext}`;
+  }
+  hideProcessing();
+  refreshUI();
+  updatePreview();
+}
+
+async function applyFormat() {
+  if (!images.length) return;
+  showProcessing('正在转换格式...');
+  const format = document.getElementById('targetFormat').value;
+  const quality = parseInt(document.getElementById('formatQuality').value) / 100;
+  const ext = getExtension(format);
+  for (let i = 0; i < images.length; i++) {
+    document.getElementById('processingProgress').textContent = `${i + 1} / ${images.length}`;
+    const item = images[i];
+    const img = await loadImage(item);
+    const canvas = document.createElement('canvas');
+    canvas.width = img.naturalWidth;
+    canvas.height = img.naturalHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0);
+    item.processedCanvas = canvas;
+    item.processedBlob = await canvasToBlob(canvas, format, quality);
+    item.processedName = item.name.replace(/\.[^.]+$/, '') + `_converted${ext}`;
+  }
+  hideProcessing();
+  refreshUI();
+  updatePreview();
+}
+
+async function applyCompress() {
+  if (!images.length) return;
+  showProcessing('正在压缩...');
+  const quality = parseInt(document.getElementById('compressQuality').value) / 100;
+  for (let i = 0; i < images.length; i++) {
+    document.getElementById('processingProgress').textContent = `${i + 1} / ${images.length}`;
+    const item = images[i];
+    const img = await loadImage(item);
+    const canvas = document.createElement('canvas');
+    canvas.width = img.naturalWidth;
+    canvas.height = img.naturalHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0);
+    item.processedCanvas = canvas;
+    item.processedBlob = await canvasToBlob(canvas, 'image/jpeg', quality);
+    item.processedName = item.name.replace(/\.[^.]+$/, '') + `_compressed.jpg`;
+  }
+  hideProcessing();
+  refreshUI();
+  updatePreview();
+}
+
+async function applyWatermark() {
+  if (!images.length) return;
+  showProcessing('正在添加水印...');
+  const text = document.getElementById('wmText').value || 'Watermark';
+  const fontSize = parseInt(document.getElementById('wmSize').value) || 24;
+  const color = document.getElementById('wmColor').value;
+  const opacity = parseInt(document.getElementById('wmOpacity').value) / 100;
+  const position = document.getElementById('wmPosition').value;
+  for (let i = 0; i < images.length; i++) {
+    document.getElementById('processingProgress').textContent = `${i + 1} / ${images.length}`;
+    const item = images[i];
+    const img = await loadImage(item);
+    const canvas = document.createElement('canvas');
+    canvas.width = img.naturalWidth;
+    canvas.height = img.naturalHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0);
+    ctx.save();
+    ctx.globalAlpha = opacity;
+    ctx.font = `bold ${fontSize}px sans-serif`;
+    ctx.fillStyle = color;
+    ctx.shadowColor = 'rgba(0,0,0,0.5)';
+    ctx.shadowBlur = 4;
+    ctx.shadowOffsetX = 1;
+    ctx.shadowOffsetY = 1;
+    const metrics = ctx.measureText(text);
+    const tw = metrics.width;
+    const th = fontSize;
+    const pad = 20;
+    let x, y;
+    const [vPos, hPos] = position.split('-');
+    // Vertical
+    if (vPos === 'top') y = pad + th;
+    else if (vPos === 'center') y = canvas.height / 2 + th / 2;
+    else y = canvas.height - pad;
+    // Horizontal
+    if (hPos === 'left') x = pad;
+    else if (hPos === 'center') x = (canvas.width - tw) / 2;
+    else x = canvas.width - tw - pad;
+    ctx.fillText(text, x, y);
+    ctx.restore();
+    const ext = getExtension(item.file.type);
+    const mime = item.file.type || 'image/png';
+    item.processedCanvas = canvas;
+    item.processedBlob = await canvasToBlob(canvas, mime, 0.92);
+    item.processedName = item.name.replace(/\.[^.]+$/, '') + `_watermarked${ext}`;
+  }
+  hideProcessing();
+  refreshUI();
+  updatePreview();
+}
+
+// ==================== Download ====================
+async function downloadAll() {
+  const processed = images.filter(i => i.processedBlob);
+  if (!processed.length) { alert('请先处理图片后再下载！'); return; }
+  showProcessing('正在打包 ZIP...');
+  const zip = new JSZip();
+  processed.forEach(item => zip.file(item.processedName, item.processedBlob));
+  const content = await zip.generateAsync({ type: 'blob' }, meta => {
+    document.getElementById('processingProgress').textContent = `打包中 ${Math.round(meta.percent)}%`;
+  });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(content);
+  a.download = `batch-images-${Date.now()}.zip`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  hideProcessing();
+}
+
+// ==================== Util ====================
+function formatSize(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / 1048576).toFixed(1) + ' MB';
+}
+</script>
+</body>
+</html>
