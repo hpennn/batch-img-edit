@@ -83,6 +83,7 @@ tailwind.config = {
         <img src="favicon.svg" alt="批量图片编辑" class="w-8 h-8 rounded-lg shadow">
         <h1 class="text-base font-bold">批量图片编辑</h1>
       </div>
+      <button id="pwa-install-btn" style="display:none" class="p-2 rounded-lg hover:bg-black/5 transition-colors" title="添加到主屏幕"><svg class="w-5 h-5 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m-8-8h16M12 4l-4 4m4-4l4 4"/></svg></button>
       <span class="hidden sm:inline text-xs text-purple-200">🔒 纯本地处理</span>
     </div>
   </div>
@@ -683,6 +684,31 @@ init();
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/sw.js').catch(() => {});
 }
+</script>
+<script>
+(function(){
+  let deferredPrompt;
+  const installBtn = document.getElementById('pwa-install-btn');
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    if (installBtn) installBtn.style.display = 'flex';
+  });
+  if (installBtn) {
+    installBtn.addEventListener('click', async () => {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        installBtn.style.display = 'none';
+      }
+      deferredPrompt = null;
+    });
+  }
+  if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
+    if (installBtn) installBtn.style.display = 'none';
+  }
+})();
 </script>
 </body>
 </html>
