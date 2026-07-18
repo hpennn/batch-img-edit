@@ -1,4 +1,4 @@
-const config = {
+export default {
   appId: 'cn.zhinenti.batchimgedit',
   appName: '批量图片编辑',
   webDir: '.',
@@ -18,5 +18,3 @@ const config = {
     }
   }
 };
-
-exports.default = config;
