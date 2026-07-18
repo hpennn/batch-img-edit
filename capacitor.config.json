@@ -1,7 +1,7 @@
 {
   "appId": "cn.zhinenti.batchimgedit",
   "appName": "批量图片编辑",
-  "webDir": ".",
+  "webDir": "www",
   "server": {
     "androidScheme": "https"
   },

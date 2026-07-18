@@ -20,8 +20,11 @@ jobs:
           java-version: 17
       - name: Install dependencies
         run: npm install
-      - name: Build web assets
-        run: npm run build
+      - name: Prepare web assets
+        run: |
+          mkdir -p www
+          cp index.html favicon.svg sw.js manifest.json www/
+          cp -r icons www/ 2>/dev/null || true
       - name: Add Android platform
         run: npx cap add android
       - name: Sync Capacitor
@@ -36,4 +39,3 @@ jobs:
         with:
           name: app-debug.apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
-
