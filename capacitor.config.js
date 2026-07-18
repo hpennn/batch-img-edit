@@ -2,9 +2,7 @@ export default {
   appId: 'cn.zhinenti.batchimgedit',
   appName: '批量图片编辑',
   webDir: '.',
-  server: {
-    androidScheme: 'https'
-  },
+  server: { androidScheme: 'https' },
   android: {
     allowMixedContent: false,
     captureInput: true,
