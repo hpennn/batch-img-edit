@@ -742,8 +742,8 @@ if ('serviceWorker' in navigator) {
 <script>
 (function(){
   if(typeof window.Capacitor==='undefined')return;
-  var REPO=batch-img-edit';
-  var VER=1.0.0';
+  var REPO='batch-img-edit';
+  var VER='1.0.0';
   function check(){
     fetch('https://api.github.com/repos/hpennn/'+REPO+'/releases/latest')
     .then(function(r){return r.json()})
