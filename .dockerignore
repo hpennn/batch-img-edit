@@ -1,0 +1,10 @@
+git
+.gitignore
+README.md
+.github
+android-icons
+android-native-template
+capacitor.config.json
+build-app.bat
+build-app.sh
+package.json
