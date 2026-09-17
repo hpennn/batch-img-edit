@@ -1,10 +1,8 @@
-git
-.gitignore
-README.md
+node_modules
+dist
+.git
 .github
-android-icons
-android-native-template
-capacitor.config.json
-build-app.bat
-build-app.sh
-package.json
+.vscode
+*.log
+.DS_Store
+.env
